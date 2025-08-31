@@ -89,8 +89,93 @@ export class BrokerAgentStack extends cdk.Stack {
       ]),
     });
 
-    // // Ensure this runs after other updates. THIS IS DISABLED ATM S3 VECTORS NOT SUPPORTED IN CDK YET
-    // vectorBucketCr.node.addDependency(createVectorBucketLambda);
+    // Vector index configuration
+    const policyVectorIndexName = `${uid}-policy-vector-index`;
+    const vectorDimension = 1024; // Default for Titan Embed
+
+    // Create Lambda function for vector index operations
+    const createVectorIndexLambda = new lambda.Function(this, `${uid}-create-vector-index-function`, {
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'create_vector_index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, "..", "src"), {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_9.bundlingImage,
+          command: [
+            'bash', '-c',
+            'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output'
+          ],
+        },
+      }),
+      timeout: cdk.Duration.minutes(5),
+    });
+
+    // Grant permissions to the vector index Lambda function
+    createVectorIndexLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        's3vectors:CreateIndex',
+        's3vectors:GetIndex',
+        's3vectors:DeleteIndex',
+        's3vectors:ListIndexes'
+      ],
+      resources: ['*']
+    }));
+
+    // Custom resource for vector index creation
+    const vectorIndexCr = new AwsCustomResource(this, `${policyVectorIndexName}-cr`, {
+      onCreate: {
+        service: "Lambda",
+        action: "invoke",
+        parameters: {
+          FunctionName: createVectorIndexLambda.functionName,
+          Payload: JSON.stringify({
+            vector_bucket_name: policyVectorBucketName,
+            vector_index_name: policyVectorIndexName,
+            vector_dimension: vectorDimension,
+          })
+        },
+        physicalResourceId: PhysicalResourceId.of(
+          `${policyVectorIndexName}-cr-on-create`,
+        ),
+      },
+      onUpdate: {
+        service: "Lambda",
+        action: "invoke",
+        parameters: {
+          FunctionName: createVectorIndexLambda.functionName,
+          Payload: JSON.stringify({
+            vector_bucket_name: policyVectorBucketName,
+            vector_index_name: policyVectorIndexName,
+            vector_dimension: vectorDimension,
+          })
+        },
+        physicalResourceId: PhysicalResourceId.of(
+          `${policyVectorIndexName}-cr-on-update`,
+        ),
+      },
+      onDelete: {
+        service: "STS",
+        action: "getCallerIdentity",
+        physicalResourceId: PhysicalResourceId.of(
+          `${policyVectorIndexName}-cr-on-delete`,
+        ),
+      },
+      policy: AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['lambda:InvokeFunction'],
+          resources: [createVectorIndexLambda.functionArn],
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['sts:GetCallerIdentity'],
+          resources: ['*'],
+        }),
+      ]),
+    });
+
+    // Ensure vector index is created after vector bucket
+    vectorIndexCr.node.addDependency(vectorBucketCr);
 
     // // Create the bedrock knowledge base with the role arn that is referenced in the opensearch data access policy
     // const indexName = 'bedrock-knowledge-base-index';
