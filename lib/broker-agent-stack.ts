@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as bedrock from 'aws-cdk-lib/aws-bedrock';
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 
@@ -66,14 +67,8 @@ export class BrokerAgentStack extends cdk.Stack {
         ),
       },
       onUpdate: {
-        service: "Lambda",
-        action: "invoke",
-        parameters: {
-          FunctionName: createVectorBucketLambda.functionName,
-          Payload: JSON.stringify({
-            vector_bucket_name: policyVectorBucketName,
-          })
-        },
+        service: "STS",
+        action: "getCallerIdentity",
         physicalResourceId: PhysicalResourceId.of(
           `${policyVectorBucketName}-cr-on-update`,
         ),
@@ -91,13 +86,46 @@ export class BrokerAgentStack extends cdk.Stack {
           actions: ['lambda:InvokeFunction'],
           resources: [createVectorBucketLambda.functionArn],
         }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['sts:GetCallerIdentity'],
-          resources: ['*'],
-        }),
       ]),
     });
+
+    // // Ensure this runs after other updates. THIS IS DISABLED ATM S3 VECTORS NOT SUPPORTED IN CDK YET
+    // vectorBucketCr.node.addDependency(createVectorBucketLambda);
+
+    // // Create the bedrock knowledge base with the role arn that is referenced in the opensearch data access policy
+    // const indexName = 'bedrock-knowledge-base-index';
+    
+    // // Create IAM role for Bedrock knowledge base
+    // const kbRole = new iam.Role(this, 'BedrockKnowledgeBaseRole', {
+    //   assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com'),
+    //   managedPolicies: [
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonBedrockFullAccess'),
+    //   ],
+    // });
+
+    // const bedrockKnowledgeBase = new bedrock.CfnKnowledgeBase(this, 'KnowledgeBaseDocs', {
+    //   name: 'bedrock-kb-docs',
+    //   description: 'Bedrock knowledge base that contains a corpus of documents',
+    //   roleArn: kbRole.roleArn,
+    //   knowledgeBaseConfiguration: {
+    //     type: 'VECTOR',
+    //     vectorKnowledgeBaseConfiguration: {
+    //       embeddingModelArn: `arn:aws:bedrock:${this.region}::foundation-model/amazon.titan-embed-text-v1`,
+    //     },
+    //   },
+    //   storageConfiguration: {
+    //     type: 'OPENSEARCH_SERVERLESS',
+    //     opensearchServerlessConfiguration: {
+    //       collectionArn: cdk.Fn.importValue('OpenSearchCollectionArn'),
+    //       vectorIndexName: indexName,
+    //       fieldMapping: {
+    //         metadataField: 'metadataField',
+    //         textField: 'textField',
+    //         vectorField: 'vectorField',
+    //       },
+    //     },
+    //   },
+    // });
 
     // Output the policy vector bucket name for reference
     new cdk.CfnOutput(this, 'PolicyVectorBucketName', {
