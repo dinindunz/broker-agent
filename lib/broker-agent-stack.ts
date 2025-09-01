@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as bedrock from 'aws-cdk-lib/aws-bedrock';
@@ -192,6 +193,7 @@ export class BrokerAgentStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       actions: [
         's3vectors:*',
+        's3:*'
       ],
       resources: ['*']
     }));
@@ -446,10 +448,31 @@ export class BrokerAgentStack extends cdk.Stack {
       new s3n.LambdaDestination(triggerSyncLambda)
     );
 
+    // Deploy policy assets to S3 bucket after all infrastructure is ready
+    const assetsPath = path.join(__dirname, "..", "assets");
+    const s3DeployPolicies = new s3deploy.BucketDeployment(this, `${uid}-s3-deploy-policies`, {
+      sources: [s3deploy.Source.asset(assetsPath)],
+      destinationBucket: policySourceBucket,
+    });
+
+    // Ensure S3 deployment happens after all infrastructure is provisioned
+    s3DeployPolicies.node.addDependency(vectorBucketCr);
+    s3DeployPolicies.node.addDependency(vectorIndexCr);
+    s3DeployPolicies.node.addDependency(knowledgeBaseCr);
+    s3DeployPolicies.node.addDependency(bedrockDataSource);
+    s3DeployPolicies.node.addDependency(syncStateMachine);
+    s3DeployPolicies.node.addDependency(triggerSyncLambda);
+
     // Output the policy vector bucket name for reference
     new cdk.CfnOutput(this, 'PolicyVectorBucketName', {
       value: policyVectorBucketName,
       description: 'Name of the policy vector bucket',
+    });
+
+    // Output the source bucket name for reference
+    new cdk.CfnOutput(this, 'PolicySourceBucketName', {
+      value: policySourceBucket.bucketName,
+      description: 'Name of the policy source bucket where files are uploaded',
     });
   }
 }
