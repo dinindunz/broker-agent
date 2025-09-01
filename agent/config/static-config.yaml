@@ -1,0 +1,128 @@
+# Static Configuration - Manual edits only
+# This file contains all configuration values that are manually set and do not change during deployment
+
+# AWS Settings (used by ALL deployment scripts and agents)
+aws:
+  region: "us-east-1"
+  account_id: "<YOUR_AWS_ACCOUNT_ID>"
+
+# Model Settings (used by agents via get_model_settings())
+agents:
+  modelid: "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+  max_concurrent: 2
+  payload_formats:
+    sdk: "direct"
+  streaming: true
+
+# Okta OAuth2 Configuration (used by deployment scripts and gateway creation)
+okta:
+  domain: "<YOUR_OKTA_DOMAIN>"
+  
+  # OAuth2 authorization server configuration
+  authorization_server: "default"
+  
+  # Client configuration for client credentials flow (app-to-app)
+  client_credentials:
+    client_id: "<YOUR_OKTA_CLIENT_ID>"
+    client_secret: "${OKTA_CLIENT_SECRET}"
+    scope: "api"
+  
+  # Client configuration for user authentication (PKCE flow)
+  user_auth:
+    client_id: "<YOUR_OKTA_CLIENT_ID>"
+    audience: "<YOUR_OKTA_CLIENT_ID>"
+    redirect_uri: "http://localhost:8080/callback"
+    scope: "openid profile email"
+  
+  # JWT token configuration
+  jwt:
+    audience: "<YOUR_OKTA_CLIENT_ID>"
+    issuer: "https://<YOUR_OKTA_DOMAIN>/oauth2/default"
+    discovery_url: "https://<YOUR_OKTA_DOMAIN>/oauth2/default/.well-known/openid-configuration"
+    cache_duration: 300
+    refresh_threshold: 60
+
+# AgentCore JWT Authorizer Configuration
+agentcore:
+  jwt_authorizer:
+    discovery_url: "https://<YOUR_OKTA_DOMAIN>/oauth2/default/.well-known/openid-configuration"
+    allowed_audience: 
+      - "<YOUR_OKTA_CLIENT_ID>"
+
+# Client Settings (used by chatbot client)
+client:
+  default_agent: "sdk"
+  interface: "cli"
+  log_level: "INFO"
+  session_timeout: 480
+
+# Container Settings (used by deployment scripts)
+container:
+  health_path: "/ping"
+  memory_size: 3008
+  platform: "linux/arm64"
+  port: 8080
+  timeout: 900
+
+# Runtime Base Settings (used by deployment scripts)
+runtime:
+  name_prefix: "broker-agent-runtime"
+  role_arn: "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/broker-agent-execution-role"
+  sdk_agent:
+    name: "broker_agent_runtime_sdk"
+
+# Gateway Base Settings
+gateway:
+  name: "broker-agent-gtw"
+  protocol: "MCP"
+
+# MCP Lambda Settings (used by deployment scripts)
+mcp_lambda:
+  ecr_repository_name: "broker-agent-mcp-tool-repo"
+  stack_name: "broker-agent-mcp-stack"
+
+# Memory Settings (used by deployment scripts and agents)
+memory:
+  name: "broker_agent_memory"
+  description: "Broker Agent conversation memory storage"
+  event_expiry_days: 90
+
+# Deployment Settings (used by deployment scripts) 
+deployment:
+  aws_profile: ""  # Leave empty to use default AWS credentials
+
+# Development settings
+development:
+  local_callback_port: 8080
+  debug_token_validation: true
+  log_token_claims: false
+  mock_auth: false
+  mock_token: ""
+
+# Production settings
+production:
+  require_https: true
+  validate_token_expiry: true
+  strict_audience_validation: true
+  token_request_rate_limit: 10
+  log_auth_events: true
+  metrics_enabled: true
+
+# Broker agent tools schema for gateway target creation
+tools_schema:
+  - name: "get_time"
+    description: "Returns current server time"
+    inputSchema:
+      type: "object"
+      properties: {}
+      required: []
+
+  - name: "retrieve_policy"
+    description: "Retrieve lending policy information from Bedrock Knowledge Base. Accepts natural language queries to search through lending policies and guidelines."
+    inputSchema:
+      type: "object"
+      properties:
+        query:
+          type: "string"
+          description: "Natural language query to search lending policies (e.g., 'LVR requirements for investment properties', 'income verification requirements', 'debt-to-income ratio limits')"
+      required: ["query"]

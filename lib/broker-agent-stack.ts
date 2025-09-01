@@ -401,8 +401,8 @@ export class BrokerAgentStack extends cdk.Stack {
       .next(waitForSync)
       .next(checkJobStatus)
       .next(new stepfunctions.Choice(this, 'IsSyncComplete')
-        .when(stepfunctions.Condition.stringEquals('$.Payload.status', 'COMPLETE'), syncComplete)
-        .when(stepfunctions.Condition.stringEquals('$.Payload.status', 'FAILED'), syncFailed)
+        .when(stepfunctions.Condition.stringEquals('$.Payload.final_status', 'COMPLETE'), syncComplete)
+        .when(stepfunctions.Condition.stringEquals('$.Payload.final_status', 'FAILED'), syncFailed)
         .otherwise(waitForSync));
 
     const syncStateMachine = new stepfunctions.StateMachine(this, `${uid}-sync-state-machine`, {
