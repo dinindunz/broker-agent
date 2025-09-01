@@ -3,8 +3,8 @@
 
 # AWS Settings (used by ALL deployment scripts and agents)
 aws:
-  region: "us-east-1"
-  account_id: "<YOUR_AWS_ACCOUNT_ID>"
+  region: "ap-southeast-2"
+  account_id: "354334841216"
 
 # Model Settings (used by agents via get_model_settings())
 agents:
@@ -16,38 +16,38 @@ agents:
 
 # Okta OAuth2 Configuration (used by deployment scripts and gateway creation)
 okta:
-  domain: "<YOUR_OKTA_DOMAIN>"
+  domain: "trial-4952423.okta.com"
   
   # OAuth2 authorization server configuration
   authorization_server: "default"
   
   # Client configuration for client credentials flow (app-to-app)
   client_credentials:
-    client_id: "<YOUR_OKTA_CLIENT_ID>"
+    client_id: "0oav0mtu3zhsJoID7697"
     client_secret: "${OKTA_CLIENT_SECRET}"
     scope: "api"
   
   # Client configuration for user authentication (PKCE flow)
   user_auth:
-    client_id: "<YOUR_OKTA_CLIENT_ID>"
-    audience: "<YOUR_OKTA_CLIENT_ID>"
+    client_id: "0oav0mkhyofxPWnOT697"
+    audience: "0oav0mkhyofxPWnOT697"
     redirect_uri: "http://localhost:8080/callback"
     scope: "openid profile email"
   
   # JWT token configuration
   jwt:
-    audience: "<YOUR_OKTA_CLIENT_ID>"
-    issuer: "https://<YOUR_OKTA_DOMAIN>/oauth2/default"
-    discovery_url: "https://<YOUR_OKTA_DOMAIN>/oauth2/default/.well-known/openid-configuration"
+    audience: "0oav0mkhyofxPWnOT697"
+    issuer: "https://trial-4952423.okta.com/oauth2/default"
+    discovery_url: "https://trial-4952423.okta.com/oauth2/default/.well-known/openid-configuration"
     cache_duration: 300
     refresh_threshold: 60
 
 # AgentCore JWT Authorizer Configuration
 agentcore:
   jwt_authorizer:
-    discovery_url: "https://<YOUR_OKTA_DOMAIN>/oauth2/default/.well-known/openid-configuration"
+    discovery_url: "https://trial-4952423.okta.com/oauth2/default/.well-known/openid-configuration"
     allowed_audience: 
-      - "<YOUR_OKTA_CLIENT_ID>"
+      - "0oav0mkhyofxPWnOT697"
 
 # Client Settings (used by chatbot client)
 client:
@@ -67,7 +67,7 @@ container:
 # Runtime Base Settings (used by deployment scripts)
 runtime:
   name_prefix: "broker-agent-runtime"
-  role_arn: "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/broker-agent-execution-role"
+  role_arn: "arn:aws:iam::354334841216:role/broker-agent-execution-role"
   sdk_agent:
     name: "broker_agent_runtime_sdk"
 

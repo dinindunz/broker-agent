@@ -7,7 +7,7 @@ echo "🧪 Testing Broker Agent SDK → MCP Gateway → Lambda Tool → Bedrock 
 AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 AWS_SESSION_TOKEN=$(aws configure get aws_session_token)
-AWS_DEFAULT_REGION=$(aws configure get region || echo "us-east-1")
+AWS_DEFAULT_REGION=$(aws configure get region || echo "ap-southeast-2")
 
 # Check if we have credentials
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then

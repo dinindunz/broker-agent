@@ -114,7 +114,7 @@ vim config/static-config.yaml
 
 # Key settings to update:
 # - aws.account_id: Your AWS account ID
-# - aws.region: Your preferred AWS region  (this project tested on us-east-1)
+# - aws.region: Your preferred AWS region  (this project tested on ap-southeast-2)
 # - okta.domain: Your Okta domain
 # - okta.client_credentials.client_id: Your Okta client ID
 # - okta.client_credentials.client_secret: Set via environment variable

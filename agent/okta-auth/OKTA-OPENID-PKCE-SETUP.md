@@ -1,6 +1,6 @@
 # Okta OpenID Connect PKCE Setup Guide
 
-Complete guide for setting up Okta OAuth2 authentication with the AWS Support Agent AgentCore system.
+Complete guide for setting up Okta OAuth2 authentication with the Broker Agent AgentCore system.
 
 ## Overview
 
@@ -22,7 +22,7 @@ This guide configures Okta OAuth2 authentication for the AgentCore system, suppo
 3. **Select**: OIDC - OpenID Connect → Single-Page Application (SPA)
 4. **Configure Application**:
    ```
-   App name: aws-support-agent-client
+   App name: broker-agent-client
    Grant types: ✅ Authorization Code, ✅ Refresh Token
    Sign-in redirect URIs: 
      - http://localhost:8080/callback
@@ -51,7 +51,7 @@ For AgentCore workload authentication:
 1. **Create new app**: OIDC - OpenID Connect → Web Application
 2. **Configure**:
    ```
-   App name: aws-support-agent-m2m
+   App name: broker-agent-m2m
    Grant types: ✅ Client Credentials
    Client authentication: ✅ Client secret
    ```

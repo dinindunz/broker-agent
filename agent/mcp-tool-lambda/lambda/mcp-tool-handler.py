@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 # Initialize Bedrock clients
 try:
-    bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
+    bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='ap-southeast-2')
     BEDROCK_AVAILABLE = True
     logger.info("Bedrock Agent Runtime client initialized successfully")
 except Exception as e:
