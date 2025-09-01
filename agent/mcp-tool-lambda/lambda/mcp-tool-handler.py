@@ -29,7 +29,7 @@ BROKER_TOOLS = ['retrieve_policy']
 ALL_TOOLS = BASIC_TOOLS + BROKER_TOOLS
 
 # Knowledge Base configuration - these should be set via environment variables
-KNOWLEDGE_BASE_ID = os.environ.get('KNOWLEDGE_BASE_ID', '')
+KNOWLEDGE_BASE_ID = os.environ.get('KNOWLEDGE_BASE_ID', 'F0RI3FAYPP')
 if not KNOWLEDGE_BASE_ID:
     logger.warning("KNOWLEDGE_BASE_ID environment variable not set")
 

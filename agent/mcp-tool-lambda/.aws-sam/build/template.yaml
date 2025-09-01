@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: MCP Tool Lambda for Bedrock AgentCore Gateway MCP testing
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    Description: Environment name for CloudFormation tags only
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 3008
+Resources:
+  BedrockAgentCoreGatewayExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: bac-gateway-execution-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: bedrock-agentcore.amazonaws.com
+          Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              aws:SourceAccount:
+                Ref: AWS::AccountId
+            ArnLike:
+              aws:SourceArn:
+                Fn::Sub: arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:gateway/bac-gtw-*
+      Policies:
+      - PolicyName: BedrockAgentCoreGatewayExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: InvokeLambdaFunctions
+            Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: '*'
+          - Sid: BedrockAgentCorePermissions
+            Effect: Allow
+            Action:
+            - bedrock-agentcore:*
+            - iam:PassRole
+            Resource: '*'
+          - Sid: S3Permissions
+            Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:ListBucket
+            - s3:GetBucketLocation
+            Resource: '*'
+          - Sid: CloudWatchLogsPermissions
+            Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            - logs:DescribeLogGroups
+            - logs:DescribeLogStreams
+            Resource: '*'
+      Tags:
+      - Key: Project
+        Value: lambda-adaptor-bedrock-agentcore
+      - Key: Component
+        Value: bedrock-agentcore-gateway-execution
+      - Key: Environment
+        Value:
+          Ref: Environment
+      - Key: ManagedBy
+        Value: SAM
+  MCPToolFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+        - Effect: Allow
+          Principal:
+            Service: bedrock-agentcore.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Policies:
+      - PolicyName: BedrockInvokePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
+      - PolicyName: CostExplorerPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ce:GetCostAndUsage
+            - ce:GetUsageReport
+            - ce:GetReservationCoverage
+            - ce:GetReservationPurchaseRecommendation
+            - ce:GetReservationUtilization
+            - ce:GetDimensionValues
+            - ce:GetMetricValues
+            - ce:ListCostCategoryDefinitions
+            - ce:GetCostCategories
+            - ce:GetRightsizingRecommendation
+            - ce:GetSavingsPlansUtilization
+            - ce:GetSavingsPlansUtilizationDetails
+            - ce:GetSavingsPlansCoverage
+            - ce:GetSavingsPlansUsage
+            - ce:GetUsageForecast
+            - ce:GetCostForecast
+            Resource: '*'
+      - PolicyName: CloudWatchLogsPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+              Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/bac-mcp-tool:*
+      Tags:
+      - Key: Project
+        Value: lambda-adaptor-bedrock-agentcore
+      - Key: Component
+        Value: mcp-tool-lambda
+      - Key: Environment
+        Value:
+          Ref: Environment
+  MCPToolFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bac-mcp-tool
+      PackageType: Image
+      ImageUri: mcptoolfunction:bac-mcp-tool
+      Description: MCP Tool Lambda for Bedrock AgentCore Gateway MCP testing
+      Role:
+        Fn::GetAtt:
+        - MCPToolFunctionRole
+        - Arn
+      Environment:
+        Variables:
+          ENVIRONMENT:
+            Ref: Environment
+          LOG_LEVEL: INFO
+      Tracing: Active
+      Tags:
+        Project: lambda-adaptor-bedrock-agentcore
+        Component: mcp-tool-lambda
+        Environment:
+          Ref: Environment
+        ManagedBy: SAM
+    Metadata:
+      DockerContext: /Users/dinindu/Projects/GitHub/broker-agent/agent/mcp-tool-lambda/lambda
+      DockerTag: bac-mcp-tool
+      Dockerfile: Dockerfile
+      SamResourceId: MCPToolFunction
+  MCPToolLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/bac-mcp-tool
+      RetentionInDays: 14
+Outputs:
+  MCPToolFunctionArn:
+    Description: MCP Tool Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - MCPToolFunction
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-MCPToolFunctionArn
+  MCPToolFunctionName:
+    Description: MCP Tool Lambda Function Name
+    Value:
+      Ref: MCPToolFunction
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-MCPToolFunctionName
+  MCPToolFunctionRoleArn:
+    Description: MCP Tool Lambda Function Role ARN
+    Value:
+      Fn::GetAtt:
+      - MCPToolFunctionRole
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-MCPToolFunctionRoleArn
+  BedrockAgentCoreGatewayExecutionRoleArn:
+    Description: Bedrock AgentCore Gateway Execution Role ARN - Use this role when
+      creating Bedrock AgentCore Gateway targets
+    Value:
+      Fn::GetAtt:
+      - BedrockAgentCoreGatewayExecutionRole
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-BedrockAgentCoreGatewayExecutionRoleArn
+  BedrockAgentCoreGatewayExecutionRoleName:
+    Description: Bedrock AgentCore Gateway Execution Role Name
+    Value:
+      Ref: BedrockAgentCoreGatewayExecutionRole
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-BedrockAgentCoreGatewayExecutionRoleName
