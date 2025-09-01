@@ -16,13 +16,13 @@ if [ -f "$PROJECT_ROOT/config/static-config.yaml" ]; then
     MEMORY_NAME=$(yq eval '.memory.name' "$PROJECT_ROOT/config/static-config.yaml" 2>/dev/null || echo "bac-agent-memory")
     MEMORY_DESCRIPTION=$(yq eval '.memory.description' "$PROJECT_ROOT/config/static-config.yaml" 2>/dev/null || echo "BAC Agent conversation memory storage")
     EVENT_EXPIRY_DAYS=$(yq eval '.memory.event_expiry_days' "$PROJECT_ROOT/config/static-config.yaml" 2>/dev/null || echo "90")
-    REGION=$(yq eval '.aws.region' "$PROJECT_ROOT/config/static-config.yaml" 2>/dev/null || echo "us-east-1")
+    REGION=$(yq eval '.aws.region' "$PROJECT_ROOT/config/static-config.yaml" 2>/dev/null || echo "ap-southeast-2")
 else
     echo "⚠️ Configuration file not found, using defaults"
     MEMORY_NAME="bac-agent-memory"
     MEMORY_DESCRIPTION="BAC Agent conversation memory storage"
     EVENT_EXPIRY_DAYS="90"
-    REGION="us-east-1"
+    REGION="ap-southeast-2"
 fi
 
 echo "📋 Memory Configuration:"
@@ -259,7 +259,7 @@ echo "📋 Summary:"
 echo "   • Agents can now store and retrieve conversation context"
 echo "   • No automatic strategies configured - pure conversation storage"
 echo "   • Events expire after $EVENT_EXPIRY_DAYS days"
-echo "   • Both DIY and SDK agents will use this memory resource"
+echo "   • Broker Agent SDK will use this memory resource"
 echo ""
 echo "🔍 To verify memory status later:"
 echo "   aws bedrock-agentcore-control list-memories --region $REGION"

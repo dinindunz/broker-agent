@@ -32,7 +32,7 @@ memory:
 oauth_provider:
   provider_arn: ''
   provider_name: ''
-  scopes: []
+  scopes: ["api"]
 
 runtime:
   diy_agent:

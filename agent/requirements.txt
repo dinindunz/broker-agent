@@ -26,4 +26,3 @@ bedrock-agentcore-starter-toolkit
 requests
 mcp
 httpx
-yq

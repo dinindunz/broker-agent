@@ -187,7 +187,7 @@ echo ""
 echo "🧹 Optional: Clean up ECR repositories..."
 echo "   This will delete Docker images but keep the repositories"
 
-ECR_REPOS=("bac-runtime-repo-diy" "bac-runtime-repo-sdk")
+        ECR_REPOS=("broker-agent-runtime-repo-sdk")
 
 for repo in "${ECR_REPOS[@]}"; do
     echo "   Checking ECR repository: $repo"

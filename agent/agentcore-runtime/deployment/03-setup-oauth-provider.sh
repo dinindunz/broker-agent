@@ -56,11 +56,11 @@ verify_prerequisites() {
     fi
     
     # Check ECR repositories
-    local repos=("bac-runtime-repo-diy" "bac-runtime-repo-sdk")
+    local repos=("broker-agent-runtime-repo-sdk")
     for repo in "${repos[@]}"; do
         if ! aws ecr describe-repositories --repository-names "$repo" --region "$REGION" &> /dev/null; then
             echo -e "${RED}❌ ECR repository not found: $repo${NC}"
-            echo "   Please run ./prerequisites.sh first"
+            echo "   Please run ./01-prerequisites.sh first"
             return 1
         fi
     done
@@ -257,10 +257,9 @@ show_next_steps() {
     echo "   • Updated: config/dynamic-config.yaml"
     echo ""
     echo -e "${BLUE}🚀 Next Steps:${NC}"
-    echo "   1. Deploy DIY agent: ./deploy-diy.sh"
-    echo "   2. Deploy SDK agent: ./deploy-sdk.sh"
-    echo "   3. Create runtimes: python3 deploy-diy-runtime.py"
-    echo "   4. Create runtimes: python3 deploy-sdk-runtime.py"
+    echo "   1. Deploy MCP Lambda: ./04-deploy-mcp-tool-lambda.sh"
+    echo "   2. Create Gateway: ./05-create-gateway-targets.sh"
+    echo "   3. Deploy Broker Agent SDK: ./06-deploy-sdk.sh"
     echo ""
     echo -e "${BLUE}💻 Using OAuth in your agents:${NC}"
     echo "   @requires_access_token("

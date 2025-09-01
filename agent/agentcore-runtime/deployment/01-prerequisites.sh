@@ -70,26 +70,26 @@ setup_python_environment() {
         return 1
     fi
     
-    # Create virtual environment if it doesn't exist
-    if [[ ! -d "${PROJECT_DIR}/.venv" ]]; then
-        echo "   📦 Creating virtual environment..."
-        if python3 -m venv "${PROJECT_DIR}/.venv"; then
-            echo -e "${GREEN}✅ Virtual environment created${NC}"
-        else
-            echo -e "${RED}❌ Failed to create virtual environment${NC}"
-            return 1
-        fi
-    else
-        echo -e "${GREEN}✅ Virtual environment already exists${NC}"
-    fi
+    # # Create virtual environment if it doesn't exist
+    # if [[ ! -d "${PROJECT_DIR}/.venv" ]]; then
+    #     echo "   📦 Creating virtual environment..."
+    #     if python3 -m venv "${PROJECT_DIR}/.venv"; then
+    #         echo -e "${GREEN}✅ Virtual environment created${NC}"
+    #     else
+    #         echo -e "${RED}❌ Failed to create virtual environment${NC}"
+    #         return 1
+    #     fi
+    # else
+    #     echo -e "${GREEN}✅ Virtual environment already exists${NC}"
+    # fi
     
-    # Activate virtual environment and install dependencies
-    echo "   📦 Installing Python dependencies..."
-    cd "${PROJECT_DIR}"
-    source .venv/bin/activate
+    # # Activate virtual environment and install dependencies
+    # echo "   📦 Installing Python dependencies..."
+    # cd "${PROJECT_DIR}"
+    # source .venv/bin/activate
     
-    # Upgrade pip first
-    pip install --upgrade pip > /dev/null 2>&1
+    # # Upgrade pip first
+    # pip install --upgrade pip > /dev/null 2>&1
     
     # Install requirements with better error handling
     echo "   📦 Installing Python dependencies..."
@@ -242,7 +242,7 @@ create_iam_role() {
 check_ecr_repositories() {
     echo -e "${BLUE}📦 Checking ECR repositories...${NC}"
     
-    local repos=("bac-runtime-repo-diy" "bac-runtime-repo-sdk")
+    local repos=("broker-agent-runtime-repo-sdk")
     
     for repo in "${repos[@]}"; do
         if aws ecr describe-repositories --repository-names "$repo" --region "$REGION" &> /dev/null; then
@@ -424,10 +424,11 @@ main() {
     echo -e "${GREEN}🎉 Prerequisites setup complete!${NC}"
     echo ""
     echo -e "${BLUE}📋 Next steps:${NC}"
-    echo "   1. Deploy DIY agent: ./deploy-diy.sh"
-    echo "   2. Deploy SDK agent: ./deploy-sdk.sh"
-    echo "   3. Create runtimes: python3 deploy-diy-runtime.py"
-    echo "   4. Create runtimes: python3 deploy-sdk-runtime.py"
+    echo "   1. Create AgentCore Memory: ./02-create-memory.sh"
+    echo "   2. Setup OAuth provider: ./03-setup-oauth-provider.sh"
+    echo "   3. Deploy MCP Lambda: ./04-deploy-mcp-tool-lambda.sh"
+    echo "   4. Create Gateway: ./05-create-gateway-targets.sh"
+    echo "   5. Deploy Broker Agent SDK: ./06-deploy-sdk.sh"
     echo ""
     echo -e "${BLUE}🔗 For Okta integration:${NC}"
     echo "   5. Test Okta integration: cd src/auth && python okta_working_final.py"
